@@ -10,6 +10,10 @@ Currently, it only has this flavor:
 
 I highly suggest you configure your wm and compositor to leave this window out of any open/close animations, shadows, blur etc. Those effects unfortunatelly get in the way of the promised clean look, which the popup window manages on its own.
 
+## License
+
+Code is MIT licensed. All files in [assets/](assets/), unless explicitly equipped with a different license, are © 2025 by Martin Vlček, licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).
+
 ## Installation
 
 ### Windows
