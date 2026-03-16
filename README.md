@@ -22,7 +22,7 @@ Code is MIT licensed. All files in [assets/](assets/), unless explicitly equippe
 
 ### Linux
 
-If you're using arch, there is an [AUR package](https://aur.archlinux.org/packages/derg-clock-popup).
+If you're using Arch, there is an [AUR package](https://aur.archlinux.org/packages/derg-clock-popup).
 
 Otherwise, let's [build from source](#build-from-source), my friend!
 
