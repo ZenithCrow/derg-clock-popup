@@ -1,10 +1,13 @@
 const std = @import("std");
 const time = std.time;
+
+const anim_popup = @import("anim_popup");
+const anim = anim_popup.anim;
+const raster = anim_popup.raster;
+const c = anim_popup.c;
 const derg_clock_popup = @import("derg_clock_popup");
-const c = derg_clock_popup.c;
 const build_options = derg_clock_popup.build_options;
-const anim = @import("anim.zig");
-const raster = @import("raster.zig");
+const derg_c = derg_clock_popup.c;
 
 const time_buf_size = 8;
 
@@ -63,27 +66,27 @@ var win: ?*c.SDL_Window = null;
 
 pub fn main() !void {
     if (!c.SDL_Init(c.SDL_INIT_VIDEO)) {
-        std.log.err("failed to initialize SDL: {s}\n", .{c.SDL_GetError()});
+        std.log.err("failed to initialize SDL: {s}", .{c.SDL_GetError()});
         return error.SDLInitFailed;
     }
     defer c.SDL_Quit();
 
     if (!c.TTF_Init()) {
-        std.log.err("failed to initialize SDL_ttf: {s}\n", .{c.SDL_GetError()});
+        std.log.err("failed to initialize SDL_ttf: {s}", .{c.SDL_GetError()});
         return error.TTFInitFailed;
     }
     defer c.TTF_Quit();
 
-    const cur_time = c.time(null);
-    const tm = c.localtime(&cur_time);
+    const cur_time = derg_c.time(null);
+    const tm = derg_c.localtime(&cur_time);
     var time_buf: [time_buf_size]u8 = undefined;
 
-    const w_len = c.strftime(&time_buf[0], time_buf_size, "%H:%M", tm);
+    const w_len = derg_c.strftime(&time_buf[0], time_buf_size, "%H:%M", tm);
     const time_str = time_buf[0..w_len];
 
     const font = c.TTF_OpenFont(font_path, font_size);
     if (font == null) {
-        std.log.err("failed to load font: {s}\n", .{c.SDL_GetError()});
+        std.log.err("failed to load font: {s}", .{c.SDL_GetError()});
         return error.FontLoadFailed;
     }
     defer c.TTF_CloseFont(font);
@@ -95,20 +98,20 @@ pub fn main() !void {
         fg_color,
     );
     if (text_surf == null) {
-        std.log.err("failed to render text: {s}\n", .{c.SDL_GetError()});
+        std.log.err("failed to render text: {s}", .{c.SDL_GetError()});
         return error.TextRenderFailed;
     }
 
     var disp_count: c_int = undefined;
     const disps = c.SDL_GetDisplays(&disp_count);
     if (disps == null or disp_count < 1) {
-        std.log.err("failed to get displays: {s}\n", .{c.SDL_GetError()});
+        std.log.err("failed to get displays: {s}", .{c.SDL_GetError()});
         return error.DisplayGetFailed;
     }
 
     const disp_mode = c.SDL_GetCurrentDisplayMode(disps[0]);
     if (disp_mode == null) {
-        std.log.err("failed to get display mode: {s}\n", .{c.SDL_GetError()});
+        std.log.err("failed to get display mode: {s}", .{c.SDL_GetError()});
         return error.DisplayModeGetFailed;
     }
 
@@ -126,7 +129,7 @@ pub fn main() !void {
         &win,
         &rndr,
     )) {
-        std.log.err("failed to create window and renderer: {s}\n", .{c.SDL_GetError()});
+        std.log.err("failed to create window and renderer: {s}", .{c.SDL_GetError()});
         return error.WindowAndRendererCreationFailed;
     }
     defer {
@@ -168,6 +171,8 @@ pub fn main() !void {
                 else => {},
             }
         }
+
+        c.SDL_Delay(2);
 
         var redraw = false;
         const ticks = c.SDL_GetTicks();
@@ -237,7 +242,7 @@ pub fn main() !void {
                 fg_color_frame,
             );
             if (text_surf == null) {
-                std.log.err("failed to render text: {s}\n", .{c.SDL_GetError()});
+                std.log.err("failed to render text: {s}", .{c.SDL_GetError()});
                 return error.TextRenderFailed;
             }
 
@@ -247,7 +252,7 @@ pub fn main() !void {
 
             const text_tex = c.SDL_CreateTextureFromSurface(rndr, text_surf);
             if (text_tex == null) {
-                std.log.err("failed to create texture from surface: {s}\n", .{c.SDL_GetError()});
+                std.log.err("failed to create texture from surface: {s}", .{c.SDL_GetError()});
                 return error.TextureCreateFailed;
             }
             defer c.SDL_DestroyTexture(text_tex);

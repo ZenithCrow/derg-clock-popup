@@ -1,13 +1,19 @@
 .{
     .name = .derg_clock_popup,
-    .version = "1.0.1",
+    .version = "1.0.2",
     .fingerprint = 0x210dd33cb75b4c35,
     .minimum_zig_version = "0.15.1",
-    .dependencies = .{},
+    .dependencies = .{
+        .anim_popup = .{
+            .url = "https://github.com/ZenithCrow/anim-popup/archive/refs/tags/v0.1.0.tar.gz",
+            .hash = "anim_popup-0.1.0-7YOTEG8hAAAzrJ9uNG0ZijgneYcgqF7Wfe0ZnOSGS05c",
+        },
+    },
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "src",
+        "LICENSE",
         "README.md",
     },
 }

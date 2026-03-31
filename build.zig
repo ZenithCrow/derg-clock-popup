@@ -49,9 +49,18 @@ pub fn build(b: *std.Build) !void {
             target_path = b.pathJoin(&.{ name_target_triple, target_path });
         }
 
+        const anim_popup = b.dependency("anim_popup", .{
+            .target = target,
+            .optimize = optimize,
+            .sdls_include_path = sdls_include_path orelse "",
+        });
+
         const mod = b.addModule("derg_clock_popup", .{
             .root_source_file = b.path("src/root.zig"),
             .target = target,
+            .imports = &.{
+                .{ .name = "anim_popup", .module = anim_popup.module("anim_popup") },
+            },
         });
 
         if (sdls_include_path) |inc_path| {
@@ -76,6 +85,7 @@ pub fn build(b: *std.Build) !void {
             .link_libc = true,
             .imports = &.{
                 .{ .name = "derg_clock_popup", .module = mod },
+                .{ .name = "anim_popup", .module = anim_popup.module("anim_popup") },
             },
         });
 
