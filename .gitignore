@@ -2,5 +2,6 @@
 
 zig-out/
 .zig-cache/
+zig-pkg/
 
 win_deps/

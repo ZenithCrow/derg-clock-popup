@@ -8,11 +8,11 @@ Currently, it only has this flavor:
 
 ![showcase video](assets/showcase/derg-clock-popup-showcase.gif)
 
-I highly suggest you configure your wm and compositor to leave this window out of any open/close animations, shadows, blur etc. Those effects unfortunatelly get in the way of the promised clean look, which the popup window manages on its own.
+I highly suggest you configure your window manager and compositor to leave this window out of any open/close animations, shadows, blur, focus etc. Those effects unfortunatelly get in the way of the promised clean look, which the popup window manages on its own.
 
 ## License
 
-Code is MIT licensed. All files in [assets/](assets/), unless explicitly equipped with a different license, are © 2025 by Martin Vlček, licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).
+Code is MIT licensed. All files in [assets/](assets/), unless explicitly equipped with a different license, are © 2025 by ZenithCrow, licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/).
 
 ## Installation
 
@@ -22,21 +22,25 @@ Code is MIT licensed. All files in [assets/](assets/), unless explicitly equippe
 
 ### Linux
 
+**Works on both Wayland and X11 thanks to SDL3! yayy**
+
 If you're using Arch, there is an [AUR package](https://aur.archlinux.org/packages/derg-clock-popup).
 
 Otherwise, let's [build from source](#build-from-source), my friend!
 
 ## Build from source
 
-Tool prequisities: `zig`.
+Tool prequisities: `zig 0.16`.
 
 ### Dependencies
 
 #### SDL3
 
-The best way to get started is to install SDL3 libraries system-wide, namely `SDL3`, `SDL3_ttf`, `SDL3_image`. Arch example
+The best way to get started is to install SDL3 libraries system-wide, namely `SDL3`, `SDL3_ttf`, `SDL3_image`. Arch example:
 
     sudo pacman -S sdl3 sdl3_ttf sdl3_image
+
+Sometimes their respective 'devel' variants (`SDL3-devel`) might be needed because of missing headers.
 
 In scenarios where the libraries aren't accessible via lookup in `PATH` directories, you can point the `-Dsdls_lib_path` build option to the directory containing the SDL libraries, as well as point the `-Dsdls_include_path` build option to the parent directory of the SDL include directories.
 
@@ -44,9 +48,9 @@ The same goes for Windows, where package managers aren't very popular. You can e
 
 ### Install prefix
 
-On Linux, the preferred directory to install from source is to `/usr/local` for system-wide and to `$HOME/.local` for a single user. You can use the `--prefix` (`-p`) build option to specify where to install the program (the executable itself will end up at `{prefix}/bin/`).
+On Linux, the preferred prefix to install from source is to `/usr/local` for system-wide and to `$HOME/.local` for a single user. You can use the `--prefix` build option to specify where to install the program (the executable itself will end up at `{prefix}/bin/`).
 
-The corresponding windows prefixes are `"C:\Program Files"` and `%LOCALAPPDATA%`
+The corresponding Windows prefixes are `"C:\Program Files"` and `%LOCALAPPDATA%`
 
 Replace `{}` with your specific values. `[]` is optional.
 

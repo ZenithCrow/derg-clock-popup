@@ -125,8 +125,8 @@ pub fn build(b: *std.Build) !void {
             zip_tool.addArgs(&.{ "-r", "-", name_target_triple });
             zip_tool.setCwd(.{ .cwd_relative = b.install_prefix });
 
-            _ = zip_tool.captureStdErr();
-            const stdout = zip_tool.captureStdOut();
+            _ = zip_tool.captureStdErr(.{});
+            const stdout = zip_tool.captureStdOut(.{});
             const zip_path = try std.mem.join(b.allocator, "", &.{ name_target_triple, ".zip" });
             const zip_file = b.addInstallFile(stdout, zip_path);
             b.getInstallStep().dependOn(&zip_file.step);
