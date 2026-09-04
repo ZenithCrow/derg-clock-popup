@@ -4,27 +4,34 @@ const release_win_sdls_include_path = "win_deps/include";
 const release_win_sdls_lib_path = "win_deps";
 const release_linux_sdls_include_path = "/usr/include";
 const release_linux_sdls_lib_path = "/usr/lib";
-const release_target_queries = [_]std.Target.Query{
-    .{ .cpu_arch = .x86_64, .os_tag = .linux },
-    .{ .cpu_arch = .x86_64, .os_tag = .windows },
-};
+const max_num_targets = 10;
 
 const exe_name = "derg-clock-popup";
 
 pub fn build(b: *std.Build) !void {
-    var release_targets: [release_target_queries.len]std.Build.ResolvedTarget = undefined;
+    var release_targets: [max_num_targets]std.Build.ResolvedTarget = undefined;
+    var targ_idx: usize = 0;
 
-    const release = b.option(bool, "release", "Build for all supported targets in release mode") orelse false;
+    const release = b.option(bool, "release", "Build for specified targets in release mode") orelse false;
+    const release_windows = b.option(bool, "release-windows", "Build for windows") orelse false;
+    const release_linux = b.option(bool, "release-linux", "Build for linux") orelse false;
+
     if (release) {
-        for (release_target_queries, 0..) |query, i| {
-            release_targets[i] = b.resolveTargetQuery(query);
+        if (release_linux) {
+            release_targets[targ_idx] = b.resolveTargetQuery(.{ .os_tag = .linux, .cpu_arch = .x86_64 });
+            targ_idx += 1;
+        }
+
+        if (release_windows) {
+            release_targets[targ_idx] = b.resolveTargetQuery(.{ .os_tag = .windows, .cpu_arch = .x86_64 });
+            targ_idx += 1;
         }
     }
 
     var sdls_include_path = b.option([]const u8, "sdls_include_path", "Path to directory containing SDL3, SDL3_ttf and SDL3_image include directories");
     var sdls_lib_path = b.option([]const u8, "sdls_lib_path", "Path to directory containing SDL3, SDL3_ttf and SDL3_image libraries");
 
-    const targets = if (release) &release_targets else &[_]std.Build.ResolvedTarget{b.standardTargetOptions(.{})};
+    const targets = if (release) release_targets[0..targ_idx] else &[_]std.Build.ResolvedTarget{b.standardTargetOptions(.{})};
     const optimize: std.builtin.OptimizeMode = if (release) .ReleaseSafe else b.standardOptimizeOption(.{});
 
     for (targets) |target| {
