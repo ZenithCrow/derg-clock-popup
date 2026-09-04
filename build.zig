@@ -9,11 +9,11 @@ const release_target_queries = [_]std.Target.Query{
     .{ .cpu_arch = .x86_64, .os_tag = .windows },
 };
 
-var release_targets: [release_target_queries.len]std.Build.ResolvedTarget = undefined;
-
 const exe_name = "derg-clock-popup";
 
 pub fn build(b: *std.Build) !void {
+    var release_targets: [release_target_queries.len]std.Build.ResolvedTarget = undefined;
+
     const release = b.option(bool, "release", "Build for all supported targets in release mode") orelse false;
     if (release) {
         for (release_target_queries, 0..) |query, i| {
@@ -98,6 +98,11 @@ pub fn build(b: *std.Build) !void {
         exe_mod.linkSystemLibrary("SDL3_ttf", .{});
         exe_mod.linkSystemLibrary("SDL3_image", .{});
 
+        const exe = b.addExecutable(.{
+            .name = exe_name,
+            .root_module = exe_mod,
+        });
+
         if (target.result.os.tag == .windows) {
             const sdl_dll = b.addInstallFile(b.path("win_deps/x86_64/SDL3.dll"), b.pathJoin(&.{ target_path, "SDL3.dll" }));
             b.getInstallStep().dependOn(&sdl_dll.step);
@@ -105,12 +110,10 @@ pub fn build(b: *std.Build) !void {
             b.getInstallStep().dependOn(&sdl_ttf_dll.step);
             const sdl_image_dll = b.addInstallFile(b.path("win_deps/x86_64/SDL3_image.dll"), b.pathJoin(&.{ target_path, "SDL3_image.dll" }));
             b.getInstallStep().dependOn(&sdl_image_dll.step);
-        }
 
-        const exe = b.addExecutable(.{
-            .name = exe_name,
-            .root_module = exe_mod,
-        });
+            // to get rid of the ugly terminal window when opening the exe on Windows
+            exe.subsystem = .windows;
+        }
 
         const assets_install_dir = b.addInstallDirectory(.{ .source_dir = b.path("assets/install"), .install_subdir = ".", .install_dir = .{ .custom = assets_dir } });
         b.getInstallStep().dependOn(&assets_install_dir.step);

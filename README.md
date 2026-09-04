@@ -8,7 +8,7 @@ Currently, it only has this flavor:
 
 ![showcase video](assets/showcase/derg-clock-popup-showcase.gif)
 
-I highly suggest you configure your window manager and compositor to leave this window out of any open/close animations, shadows, blur, focus etc. Those effects unfortunatelly get in the way of the promised clean look, which the popup window manages on its own.
+I highly suggest you configure your window manager and compositor to leave this window out of any open/close animations, shadows, blur, focus, etc. Those effects unfortunatelly get in the way of the promised clean look, which the popup window manages on its own.
 
 ## License
 
