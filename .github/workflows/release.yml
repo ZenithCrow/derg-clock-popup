@@ -16,7 +16,7 @@ jobs:
 
       - uses: mlugg/setup-zig@v2
         with:
-          version: 0.16.0  
+          version: 0.17.0  
 
       - name: Download SDL3 dependencies
         run: |
@@ -24,7 +24,7 @@ jobs:
 
       - name: Build for Windows
         run: |
-          zig build -Drelease -Drelease-windows
+          zig build -Drelease-windows
           ls
 
       - name: Create Release

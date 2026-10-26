@@ -5,8 +5,12 @@
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
         .anim_popup = .{
-            .url = "https://github.com/ZenithCrow/anim-popup/archive/refs/tags/v0.1.0.tar.gz",
-            .hash = "anim_popup-0.1.0-7YOTEG8hAAAzrJ9uNG0ZijgneYcgqF7Wfe0ZnOSGS05c",
+            .url = "https://github.com/ZenithCrow/anim-popup/archive/refs/tags/v0.1.1.tar.gz",
+            .hash = "anim_popup-0.1.1-7YOTEPMjAADnreNeVyYtHrpjNvfmACfzkXH6hPM81rT5",
+        },
+        .translate_c = .{
+            .url = "git+https://codeberg.org/ziglang/translate-c?ref=zig-0.17.x#cfac21f3199b2b02ce3fd7db652aa456421fe4ab",
+            .hash = "translate_c-2.0.2-Q_BUWvBNBwDnyehSiuAJmdFcMYHYGA-Jc3KiYdrV2Dqx",
         },
     },
     .paths = .{

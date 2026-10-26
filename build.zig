@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const Translator = @import("translate_c").Translator;
+
 const release_win_sdls_include_path = "win_deps/include";
 const release_win_sdls_lib_path = "win_deps";
 const release_linux_sdls_include_path = "/usr/include";
@@ -12,9 +14,16 @@ pub fn build(b: *std.Build) !void {
     var release_targets: [max_num_targets]std.Build.ResolvedTarget = undefined;
     var targ_idx: usize = 0;
 
-    const release = b.option(bool, "release", "Build for specified targets in release mode") orelse false;
-    const release_windows = b.option(bool, "release-windows", "Build for windows") orelse false;
-    const release_linux = b.option(bool, "release-linux", "Build for linux") orelse false;
+    const release_all = b.option(bool, "release-all", "Build for all supported targets in release mode") orelse false;
+    var release_windows = b.option(bool, "release-windows", "Build for windows") orelse false;
+    var release_linux = b.option(bool, "release-linux", "Build for linux") orelse false;
+
+    if (release_all) {
+        release_windows = true;
+        release_linux = true;
+    }
+
+    const release = release_windows or release_linux;
 
     if (release) {
         if (release_linux) {
@@ -32,7 +41,7 @@ pub fn build(b: *std.Build) !void {
     var sdls_lib_path = b.option([]const u8, "sdls_lib_path", "Path to directory containing SDL3, SDL3_ttf and SDL3_image libraries");
 
     const targets = if (release) release_targets[0..targ_idx] else &[_]std.Build.ResolvedTarget{b.standardTargetOptions(.{})};
-    const optimize: std.builtin.OptimizeMode = if (release) .ReleaseSafe else b.standardOptimizeOption(.{});
+    const optimize: std.lang.Optimize = if (release) .safe else b.standardOptimizeOption(.{});
 
     for (targets) |target| {
         var target_path: []const u8 = if (target.result.os.tag == .windows) exe_name else "";
@@ -57,33 +66,59 @@ pub fn build(b: *std.Build) !void {
         }
 
         const anim_popup = b.dependency("anim_popup", .{
-            .target = target,
             .optimize = optimize,
+            // for some reason, specifying target leads to a fatal error: 'SDL3/SDL.h' not found
+            //.target = target,
             .sdls_include_path = sdls_include_path orelse "",
         });
 
-        const mod = b.addModule("derg_clock_popup", .{
+        const translate_c = b.dependency("translate_c", .{});
+
+        const translator: Translator = .init(translate_c, .{
+            .c_source_file = b.path("src/c.h"),
+            .target = target,
+            .optimize = optimize,
+        });
+
+        const mod = b.createModule(.{
             .root_source_file = b.path("src/root.zig"),
             .target = target,
             .imports = &.{
-                .{ .name = "anim_popup", .module = anim_popup.module("anim_popup") },
+                .{
+                    .name = "anim_popup",
+                    .module = anim_popup.module("anim_popup"),
+                },
+                .{
+                    .name = "c",
+                    .module = translator.mod,
+                },
             },
         });
-
-        if (sdls_include_path) |inc_path| {
-            mod.addIncludePath(.{ .cwd_relative = inc_path });
-        }
 
         const assets_dir = b.pathJoin(&.{ target_path, switch (target.result.os.tag) {
             .linux => b.pathJoin(&.{ "share", exe_name }),
             else => "assets",
         } });
 
-        const assets_path = if (target.result.os.tag == .linux) b.pathJoin(&.{ b.install_prefix, assets_dir }) else "assets";
+        const install_prefix: std.Build.LazyPath = .{ .relative = .{ .base = .install_prefix } };
+        const assets_sub_path = assets_dir;
 
-        const build_options = b.addOptions();
-        build_options.addOption([]const u8, "assets_path", assets_path);
-        mod.addOptions("build_options", build_options);
+        const sh_tool = b.addSystemCommand(&.{"sh"});
+        sh_tool.addFileArg(b.path("stupid_install_prefix.sh"));
+        sh_tool.addDirectoryArg2(install_prefix, .{});
+        sh_tool.addArg(assets_sub_path);
+        const build_opts_file = sh_tool.addOutputFileArg2("build_options.zig", .{});
+
+        b.getInstallStep().dependOn(&sh_tool.step);
+
+        mod.addAnonymousImport("build_options", .{
+            .root_source_file = build_opts_file,
+            .target = b.graph.host,
+        });
+
+        if (sdls_include_path) |inc_path| {
+            mod.addIncludePath(.{ .cwd_relative = inc_path });
+        }
 
         const exe_mod = b.createModule(.{
             .root_source_file = b.path("src/main.zig"),
@@ -133,12 +168,12 @@ pub fn build(b: *std.Build) !void {
         if (release and target.result.os.tag == .windows) {
             const zip_tool = b.addSystemCommand(&.{"zip"});
             zip_tool.addArgs(&.{ "-r", "-", name_target_triple });
-            zip_tool.setCwd(.{ .cwd_relative = b.install_prefix });
+            zip_tool.setCwd(install_prefix);
 
             _ = zip_tool.captureStdErr(.{});
-            const stdout = zip_tool.captureStdOut(.{});
+            const zip_stdout = zip_tool.captureStdOut(.{});
             const zip_path = try std.mem.join(b.allocator, "", &.{ name_target_triple, ".zip" });
-            const zip_file = b.addInstallFile(stdout, zip_path);
+            const zip_file = b.addInstallFile(zip_stdout, zip_path);
             b.getInstallStep().dependOn(&zip_file.step);
 
             zip_tool.step.dependOn(&install_exe.step);
@@ -161,9 +196,7 @@ pub fn build(b: *std.Build) !void {
 
             run_cmd.step.dependOn(b.getInstallStep());
 
-            if (b.args) |args| {
-                run_cmd.addArgs(args);
-            }
+            run_cmd.addPassthruArgs();
 
             const mod_tests = b.addTest(.{
                 .root_module = mod,
